@@ -5,6 +5,7 @@ from playwright.async_api import async_playwright
 import pytesseract
 from PIL import Image, ImageFilter, ImageEnhance, ImageOps
 import os
+import NoneDedectedBot
 import random as rnd
 
 
@@ -357,30 +358,50 @@ class FreeCaptchaSolver:
           
             browser = await p.chromium.launch(
                 headless=False,  # Görünür tarayıcı
-                slow_mo=1000
+                slow_mo=50
             )
             
             context = await browser.new_context(
-                viewport={'width': 1280, 'height': 720}
+                viewport={'width': 1280, 'height': 720},
+                user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36"
             )
+            await context.add_init_script("""Object.defineProperty(navigator, 'webdriver', {get: () => undefined});""")
+            
             page = await context.new_page()
             while True:
                 try:
                     print(f"🌐 Siteye gidiliyor: {site_url}")
                     await page.goto(site_url, wait_until='networkidle')
 
-                    await asyncio.sleep(rnd.randint(2,5))
+                    await asyncio.sleep(rnd.uniform(rnd.randint(2,5),rnd.randint(6,10)))
                     await page.click('xpath=/html/body/div/div[1]/div/main/div[4]/div/div[2]/div[4]/div/div')
-                    await asyncio.sleep(rnd.randint(2,5))
+                    await asyncio.sleep(rnd.uniform(rnd.randint(2,5),rnd.randint(6,10)))
                     await page.click('xpath=/html/body/div/header/div[3]/nav/div/a[2]')
-                    await asyncio.sleep(rnd.randint(2,5))
+                    await asyncio.sleep(rnd.uniform(rnd.randint(2,5),rnd.randint(6,10)))
                     await page.click('xpath=/html/body/div[3]/table/tbody/tr/td[2]/div/div/div[3]/h3[2]/p/a')
-                    await asyncio.sleep(rnd.randint(2,5))
+                    await asyncio.sleep(rnd.uniform(rnd.randint(2,5),rnd.randint(6,10)))
 
                 
                 
                 
-                
+                    try:
+                        usernamed = await page.query_selector("xpath=/html/body/div[3]/table/tbody/tr/td[2]/div/div/div[1]/form/div[4]/ul/li[1]/div/input")
+                        await NoneDedectedBot.insan_tipi_yazma(usernamed,username)
+                        print("✅ Kullanıcı adı girildi:")
+                    except:
+                        continue
+                        
+                        # Şifre
+                    await asyncio.sleep(rnd.uniform(rnd.randint(2,5),rnd.randint(6,10)))
+                        
+                    try:
+                            
+                        passwordd = await page.query_selector("xpath=/html/body/div[3]/table/tbody/tr/td[2]/div/div/div[1]/form/div[4]/ul/li[2]/div[1]/input")
+                        await NoneDedectedBot.insan_tipi_yazma(passwordd,password)
+                        print("✅ Şifre girildi:")
+                    except:
+                        continue
+                    await asyncio.sleep(rnd.uniform(rnd.randint(2,5),rnd.randint(6,10)))
                 
                 
                 
@@ -392,27 +413,12 @@ class FreeCaptchaSolver:
                             print("📝 Kullanıcı bilgileri giriliyor...")
                         
                         # Sayfanın yüklenmesini bekle
-                            await page.wait_for_timeout(2000)
+                            await asyncio.sleep(rnd.uniform(rnd.randint(2,5),rnd.randint(6,10)))
                         
                         # Kullanıcı adı
                         
                         
-                            try:
-                                await page.fill("xpath=/html/body/div[3]/table/tbody/tr/td[2]/div/div/div[1]/form/div[4]/ul/li[1]/div/input", username)
-                                print("✅ Kullanıcı adı girildi:")
-                            except:
-                                continue
-                        
-                        # Şifre
-                            await asyncio.sleep(rnd.randint(2,5))
-                        
-                            try:
-                            
-                                await page.fill("xpath=/html/body/div[3]/table/tbody/tr/td[2]/div/div/div[1]/form/div[4]/ul/li[2]/div[1]/input", password)
-                                print("✅ Şifre girildi:")
-                            except:
-                                continue
-                            await asyncio.sleep(rnd.randint(2,5))
+                           
                             try:
                                 
                                 captcha_element = page.locator("xpath=/html/body/div[3]/table/tbody/tr/td[2]/div/div/div[1]/form/div[4]/ul/li[2]/div[2]/div/div[1]/div/img")
@@ -443,13 +449,13 @@ class FreeCaptchaSolver:
                             
                             
                             try:
-                            
-                                await page.fill("xpath=/html/body/div[3]/table/tbody/tr/td[2]/div/div/div[1]/form/div[4]/ul/li[3]/div/input", captcha_text)
+                                whereiscaptcha = await page.query_selector("xpath=/html/body/div[3]/table/tbody/tr/td[2]/div/div/div[1]/form/div[4]/ul/li[3]/div/input")
+                                await NoneDedectedBot.insan_tipi_yazma(whereiscaptcha,captcha_text)
                                 print(f"✅ CAPTCHA girildi")
                             
                             except:
                                 continue
-                            await asyncio.sleep(rnd.randint(2,5))
+                            await asyncio.sleep(rnd.uniform(rnd.randint(2,5),rnd.randint(6,10)))
 
                             try:
                             
@@ -460,7 +466,7 @@ class FreeCaptchaSolver:
                                 continue
                             
                             # Sonucu bekle
-                            await asyncio.sleep(rnd.randint(2,5))
+                            await asyncio.sleep(rnd.uniform(rnd.randint(2,5),rnd.randint(6,10)))
                             element = page.locator("#password")
                             if await element.count() == 0 or element == None:
                                 print("✅CAPTCHA Başarıyla Çözüldü...")
@@ -481,46 +487,46 @@ class FreeCaptchaSolver:
                                 await page.wait_for_timeout(3000)
                 
                 
-                    await asyncio.sleep(rnd.randint(2,5))            
+                    await asyncio.sleep(rnd.uniform(rnd.randint(2,5),rnd.randint(6,10)))           
                     guvenliksorusu1 =  page.locator("xpath=/html/body/div[3]/table/tbody/tr/td[2]/div/div/div/form/div[4]/ul/li[2]/div/p")
                     print("Güvenlik sorusu bulunuyor...")
                     guvenliksorusu1text = await guvenliksorusu1.text_content()
                     guvenlikinput1= page.locator("xpath=/html/body/div[3]/table/tbody/tr/td[2]/div/div/div/form/div[4]/ul/li[3]/div/input")
                     if guvenliksorusu1text == "What was your first car?":
-                        await guvenlikinput1.fill("SUZUKI")
+                        await NoneDedectedBot.insan_tipi_yazma(guvenlikinput1,"SUZUKI")
                     
                     elif guvenliksorusu1text == "What was the first company that you worked for?":
-                        await guvenlikinput1.fill("ERDIN")
+                        await NoneDedectedBot.insan_tipi_yazma(guvenlikinput1,"ERDIN")
                     else:
-                        await guvenlikinput1.fill("ISTANBUL")
+                        await NoneDedectedBot.insan_tipi_yazma(guvenlikinput1,"ISTANBUL")
                     print("✅Güvenlik Sorusu Uygun Şekilde Cevaplandı")
                 
 
-                    await asyncio.sleep(rnd.randint(2,5))
+                    await asyncio.sleep(rnd.uniform(rnd.randint(2,5),rnd.randint(6,10)))
 
                     guvenliksorusu2 =  page.locator("xpath=/html/body/div[3]/table/tbody/tr/td[2]/div/div/div/form/div[4]/ul/li[4]/div/p")
                     guvenliksorusu2text = await guvenliksorusu2.text_content()
                     guvenlikinput2= page.locator("xpath=/html/body/div[3]/table/tbody/tr/td[2]/div/div/div/form/div[4]/ul/li[5]/div/input")
                     if guvenliksorusu2text == "What was your first car?":
-                        await guvenlikinput2.fill("SUZUKI")
+                        await NoneDedectedBot.insan_tipi_yazma(guvenlikinput2 , "SUZUKI")
                     elif guvenliksorusu2text == "What was the first company that you worked for?":
-                        await guvenlikinput2.fill("ERDIN")
+                        await NoneDedectedBot.insan_tipi_yazma(guvenlikinput2 , "ERDIN")
                     else:
-                        await guvenlikinput2.fill("ISTANBUL")
-                    await asyncio.sleep(rnd.randint(2,5))
-                    await page.click("xpath=/html/body/div[3]/table/tbody/tr/td[2]/div/div/div/form/div[5]/button[1]")
+                        await NoneDedectedBot.insan_tipi_yazma(guvenlikinput2 , "ISTANBUL")
+                    await asyncio.sleep(rnd.uniform(rnd.randint(2,5),rnd.randint(6,10)))
+                    
 
-                    await asyncio.sleep(rnd.randint(4,8))
+                    await asyncio.sleep(rnd.uniform(rnd.randint(2,5),rnd.randint(6,10)))
                 
                     await page.click("xpath=/html/body/main/div/div/div[1]/div[1]/nav/ul/li[3]/a")
 
-                    await asyncio.sleep(rnd.randint(3,6))
+                    await asyncio.sleep(rnd.uniform(rnd.randint(2,5),rnd.randint(6,10)))
                 
 
                     tablobilgi = page.locator("xpath=/html/body/main/div/div/div/div[1]/div/div")
                     controlh1 = page.locator("xpath=/html/body/div[3]/table/tbody/tr/td[2]/div/div/div[1]/div[1]/h1")
                     if tablobilgi.count()>0 and tablobilgi.text_content() == "Hiçbir Zaman Dilimi Mevcut Değil":
-                        await asyncio.sleep(rnd.randint(180,300))
+                        await asyncio.sleep(rnd.uniform(rnd.randint(2,5),rnd.randint(6,10)))
                         await page.reload()
                     elif await controlh1.count()>0 and controlh1.text_content()=="Kullanıcı Detayları":
                         print("Oturum suresi doldu tekrar açılıcak")    
