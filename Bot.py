@@ -12,22 +12,16 @@ import random as rnd
 
 class FreeCaptchaSolver:
     def __init__(self, gemini_api_key=None):
-        """
-        Ücretsiz CAPTCHA çözücü - Tesseract ve Gemini ile
-        """
+
         self.gemini_api_key = gemini_api_key
         
-        # Tesseract path'ini ayarla
         self._setup_tesseract()
         
-        # Tesseract ayarları - Bu CAPTCHA tipine özel
         self.tesseract_config = '--psm 8 -c tessedit_char_whitelist=ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
     
     def _setup_tesseract(self):
-        """
-        Tesseract path'ini otomatik ayarla
-        """
-        if os.name == 'nt':  # Windows
+
+        if os.name == 'nt':  
             possible_paths = [
                 r'C:\Program Files\Tesseract-OCR\tesseract.exe',
                 r'C:\Program Files (x86)\Tesseract-OCR\tesseract.exe',
@@ -44,18 +38,13 @@ class FreeCaptchaSolver:
             print("⚠️  Tesseract path bulunamadı, varsayılan kullanılacak")
     
     def solve_captcha_with_tesseract(self, image_path):
-        """
-        Bu özel CAPTCHA tipine optimize edilmiş Tesseract OCR
-        Renkli, eğik, farklı fontlu harfler için özel ayarlar
-        """
+
         try:
             print("🎯 Özel CAPTCHA tipi tespit edildi - Optimize ediliyor...")
             
-            # Görüntüyü aç
             img = Image.open(image_path)
             original_img = img.copy()
             
-            # Bu CAPTCHA tipine özel yöntemler
             methods = [
                 self._preprocess_colorful_captcha_v1,
                 self._preprocess_colorful_captcha_v2,
@@ -64,7 +53,6 @@ class FreeCaptchaSolver:
                 self._preprocess_colorful_captcha_v5
             ]
             
-            # Bu tip CAPTCHA için özel konfigürasyonlar
             configs = [
                 '--psm 8 -c tessedit_char_whitelist=ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz',
                 '--psm 7 -c tessedit_char_whitelist=ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz',
@@ -80,36 +68,29 @@ class FreeCaptchaSolver:
                     try:
                         processed_img = method(original_img.copy())
                         
-                        # Debug için kaydet
                         processed_img.save(f"captcha_processed_method{i+1}_config{j+1}.png")
                         
-                        # OCR çalıştır
                         text = pytesseract.image_to_string(processed_img, config=config)
                         
-                        # Temizle
                         text = ''.join(filter(str.isalpha, text))
                         
-                        if text and len(text) >= 4:  # Bu CAPTCHA tipi genelde 4-6 harf
-                            results.append(text.lower())  # Küçük harfe çevir
+                        if text and len(text) >= 4:  
+                            results.append(text.lower()) 
                             print(f"🔍 Yöntem {i+1}-Config {j+1}: {text}")
                     
                     except Exception as e:
                         continue
             
-            # En iyi sonucu seç
             if results:
                 from collections import Counter
                 
-                # En sık tekrar edeni bul
                 counter = Counter(results)
-                most_common = counter.most_common(3)  # En çok tekrar eden 3'ü al
+                most_common = counter.most_common(3)  
                 
                 print(f"📊 Sonuç dağılımı: {most_common}")
                 
-                # En uygun olanı seç
                 best_result = most_common[0][0]
                 
-                # Sonucu formatla (ilk harfi büyük, diğerleri küçük - örneğe uygun)
                 formatted_result = self._format_captcha_result(best_result)
                 
                 print(f"✅ Final sonuç: {formatted_result}")
@@ -123,147 +104,125 @@ class FreeCaptchaSolver:
             return None
     
     def _format_captcha_result(self, text):
-        """
-        CAPTCHA sonucunu görüntüdeki stile uygun formatla
-        """
+
         if not text:
             return text
             
-        # Bu örnekteki gibi karma case olabilir
-        # Şimdilik düz lowercase döndür, site nasıl istiyorsa ona göre ayarlarız
+
         return text.lower()
     
     def _preprocess_colorful_captcha_v1(self, img):
-        """
-        Renkli CAPTCHA için - Renk kanallarını ayrı işle
-        """
+
         import numpy as np
-        
-        # RGB kanallarını ayrı ayrı işle
+
         img_array = np.array(img)
         
-        # Her renk kanalından en iyi kontrastı bul
+
         channels = []
         if len(img_array.shape) == 3:
-            for i in range(3):  # R, G, B
+            for i in range(3):  
                 channel = img_array[:, :, i]
-                # Kontrast artır
+
                 channel = np.clip(channel * 1.5, 0, 255).astype(np.uint8)
                 channels.append(channel)
             
-            # En yüksek kontrastlı kanalı seç
+
             best_channel = max(channels, key=lambda x: np.std(x))
             img = Image.fromarray(best_channel)
-        
-        # Gri tonlama ve kontrast
+
         img = img.convert('L')
         img = ImageEnhance.Contrast(img).enhance(2.5)
         
         return img
     
     def _preprocess_colorful_captcha_v2(self, img):
-        """
-        HSV renk uzayı ile preprocessing
-        """
+
         import numpy as np
         
-        # HSV'ye çevir
+
         img_hsv = img.convert('HSV')
         img_array = np.array(img_hsv)
         
-        # Value (parlaklık) kanalını al ve işle
+
         if len(img_array.shape) == 3:
             v_channel = img_array[:, :, 2]
-            # Threshold uygula
+
             v_channel = np.where(v_channel > 128, 255, 0).astype(np.uint8)
             img = Image.fromarray(v_channel)
         else:
             img = img.convert('L')
-        
-        # Morfolojik işlemler
+
         img = img.filter(ImageFilter.MedianFilter(3))
         
         return img
     
     def _preprocess_colorful_captcha_v3(self, img):
-        """
-        Adaptif threshold ile
-        """
+
         img = img.convert('L')
         
-        # Otomatik kontrast
+
         img = ImageOps.autocontrast(img)
-        
-        # Keskinleştir
+
         img = img.filter(ImageFilter.SHARPEN)
         img = img.filter(ImageFilter.UnsharpMask())
         
-        # Binary threshold
+
         img = img.point(lambda x: 0 if x < 140 else 255, '1')
         
         return img
     
     def _preprocess_colorful_captcha_v4(self, img):
-        """
-        Renkli harfler için özel edge detection
-        """
-        # Gri tonlama
+
         img = img.convert('L')
         
-        # Gaussian blur + sharpen kombinasyonu
+
         img = img.filter(ImageFilter.GaussianBlur(radius=0.5))
         img = ImageEnhance.Sharpness(img).enhance(3.0)
         
-        # Kontrast maksimuma çıkar
+
         img = ImageEnhance.Contrast(img).enhance(3.0)
-        
-        # Edge enhancement
+
         img = img.filter(ImageFilter.EDGE_ENHANCE_MORE)
         
         return img
     
     def _preprocess_colorful_captcha_v5(self, img):
-        """
-        En agresif temizleme yöntemi
-        """
-        # Boyutu büyüt (daha iyi OCR için)
+
         original_size = img.size
         img = img.resize((original_size[0] * 3, original_size[1] * 3), Image.LANCZOS)
         
-        # Gri tonlama
+     
         img = img.convert('L')
         
-        # Çok güçlü kontrast
+   
         img = ImageEnhance.Contrast(img).enhance(4.0)
         
-        # Noise reduction
         img = img.filter(ImageFilter.MedianFilter(5))
-        
-        # Sert threshold
+  
         img = img.point(lambda x: 0 if x < 120 else 255, '1')
         
         return img
     
     def _preprocess_method1(self, img):
-        """Basit gri tonlama ve kontrast"""
-        img = img.convert('L')  # Gri tonlama
-        img = ImageEnhance.Contrast(img).enhance(2.0)  # Kontrast artır
-        img = img.filter(ImageFilter.MedianFilter(3))  # Gürültü azalt
+   
+        img = img.convert('L')  
+        img = ImageEnhance.Contrast(img).enhance(2.0) 
+        img = img.filter(ImageFilter.MedianFilter(3))  
         return img
     
     def _preprocess_method2(self, img):
-        """Threshold ve morfolojik işlemler"""
+     
         img = img.convert('L')
         img = ImageEnhance.Sharpness(img).enhance(2.0)
         img = ImageOps.autocontrast(img)
         
-        # Binary threshold
+        
         threshold = 128
         img = img.point(lambda x: 0 if x < threshold else 255, '1')
         return img
     
     def _preprocess_method3(self, img):
-        """Gelişmiş filtreleme"""
+       
         img = img.convert('L')
         img = img.filter(ImageFilter.SMOOTH_MORE)
         img = ImageEnhance.Brightness(img).enhance(1.2)
@@ -271,23 +230,21 @@ class FreeCaptchaSolver:
         return img
     
     def _preprocess_method4(self, img):
-        """Adaptif threshold"""
+     
         img = img.convert('L')
-        img = ImageOps.equalize(img)  # Histogram eşitleme
+        img = ImageOps.equalize(img)  
         img = img.filter(ImageFilter.UnsharpMask())
         return img
     
     async def solve_captcha_with_gemini(self, image_path):
-        """
-        Google Gemini Vision API ile CAPTCHA çöz (Ücretsiz)
-        """
+        
         if not self.gemini_api_key:
             return None
             
         try:
             print("Gemini API ile görüntü işleniyor...")
             
-            # Görüntüyü base64'e çevir
+           
             with open(image_path, "rb") as image_file:
                 base64_image = base64.b64encode(image_file.read()).decode('utf-8')
             
@@ -317,7 +274,7 @@ class FreeCaptchaSolver:
                 result = response.json()
                 captcha_text = result['candidates'][0]['content']['parts'][0]['text'].strip()
                 
-                # Temizle - sadece alfanumerik karakterler
+                
                 captcha_text = ''.join(filter(str.isalnum, captcha_text)).upper()
                 
                 print(f"Gemini sonucu: {captcha_text}")
@@ -331,13 +288,8 @@ class FreeCaptchaSolver:
             return None
 
     async def solve_captcha(self, image_path):
-        """
-        CAPTCHA'yı çözmeye çalış - önce Tesseract, sonra Gemini
-        """
-        # Önce Tesseract dene (tamamen ücretsiz)
-    
-        
-        # Tesseract başarısızsa Gemini dene
+
+
         
         print("Tesseract başarısız, Gemini deneniyor...")
         result = await self.solve_captcha_with_gemini(image_path)
@@ -348,16 +300,14 @@ class FreeCaptchaSolver:
         return None
 
     async def run_bot(self, site_url, username, password, max_attempts=5):
-        """
-        Ana bot fonksiyonu
-        """
+
         bulundumu = False
         
         async with async_playwright() as p:
-            # Tarayıcıyı başlat
+       
           
             browser = await p.chromium.launch(
-                headless=False,  # Görünür tarayıcı
+                headless=False,  
                 slow_mo=50
             )
             
@@ -391,7 +341,7 @@ class FreeCaptchaSolver:
                     except:
                         continue
                         
-                        # Şifre
+                       
                     await asyncio.sleep(rnd.uniform(rnd.randint(2,5),rnd.randint(6,10)))
                         
                     try:
@@ -409,13 +359,13 @@ class FreeCaptchaSolver:
                         print(f"\n🔥 Deneme {attempt + 1}/{max_attempts}")
                     
                         try:
-                        # Form alanlarını doldur
+                        
                             print("📝 Kullanıcı bilgileri giriliyor...")
                         
-                        # Sayfanın yüklenmesini bekle
+                       
                             await asyncio.sleep(rnd.uniform(rnd.randint(2,5),rnd.randint(6,10)))
                         
-                        # Kullanıcı adı
+                       
                         
                         
                            
@@ -430,15 +380,15 @@ class FreeCaptchaSolver:
                                 print("❌ CAPTCHA elementi bulunamadı!")
                                 continue
                         
-                        # CAPTCHA'nın yüklenmesini bekle
+                       
                             await page.wait_for_timeout(2000)
                         
-                        # Screenshot al
+                        
                             captcha_path = f"captcha_attempt_{attempt + 1}.png"
                             await captcha_element.screenshot(path=captcha_path)
                             print(f"📸 CAPTCHA kaydedildi: {captcha_path}")
                         
-                        # CAPTCHA'yı çöz
+                        
                             print("🔍 CAPTCHA çözülüyor...")
                             captcha_text = await self.solve_captcha(captcha_path)
                         
@@ -465,7 +415,7 @@ class FreeCaptchaSolver:
                             except:
                                 continue
                             
-                            # Sonucu bekle
+                            
                             await asyncio.sleep(rnd.uniform(rnd.randint(2,5),rnd.randint(6,10)))
                             element = page.locator("#password")
                             if await element.count() == 0 or element == None:
@@ -476,7 +426,7 @@ class FreeCaptchaSolver:
                                 await page.click("xpath=/html/body/div[3]/table/tbody/tr/td[2]/div/div/div[1]/form/div[4]/ul/li[2]/div[2]/div/div[2]/span/a[1]/button")
                             
                             
-                            # Başarı kontrolü
+                          
                         
                             
                         
@@ -548,4 +498,3 @@ class FreeCaptchaSolver:
             if bulundumu == True:
                 return True
 
-# Kullanım
