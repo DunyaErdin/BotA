@@ -8,22 +8,18 @@ import os
 
 import Bot
 async def main():
-    # Google Gemini API anahtarı (opsiyonel - ücretsiz)
-    # https://makersuite.google.com/app/apikey
-    GEMINI_API_KEY = "AIzaSyDZij01DZ5oZnDGnZIVi_fU55oZiEdQ91A"  # Boş bırakabilirsiniz
+
+    GEMINI_API_KEY = input("Enter Gemini API Key: ")  
     
-    # Eğer çevre değişkeninden alacaksanız:
-    # GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
-    
-    # Bot'u başlat
+ 
     solver = Bot.FreeCaptchaSolver(gemini_api_key=GEMINI_API_KEY if GEMINI_API_KEY == "AIzaSyDZij01DZ5oZnDGnZIVi_fU55oZiEdQ91A" else None)
     
-    # Site bilgileri
+
     SITE_URL = "https://www.ustraveldocs.com/tr/tr/nonimmigrant-visa"
-    USERNAME = "SERKAN SEYHUN"
-    PASSWORD = "Serkan@2025"
+    USERNAME = input("Enter The Name : ")
+    PASSWORD = input("Enter The Password: ")
     
-    print("🚀 ÜCRETSİZ CAPTCHA ÇÖZÜCÜ BOT")
+    print("🚀 ABOT")
     print("=" * 40)
     print(f"🌐 Site: {SITE_URL}")
     print(f"👤 Kullanıcı: {USERNAME}")
@@ -31,7 +27,7 @@ async def main():
     print(f"🤖 Gemini: {'Aktif' if solver.gemini_api_key else 'Pasif'}")
     print("=" * 40)
     
-    # Tesseract kurulum kontrolü
+
     try:
         pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
         pytesseract.get_tesseract_version()
@@ -42,7 +38,7 @@ async def main():
         print("pip install pytesseract pillow")
         return
     
-    # Bot'u çalıştır
+   
     success = await solver.run_bot(SITE_URL, USERNAME, PASSWORD, max_attempts=3)
     
     if success:
