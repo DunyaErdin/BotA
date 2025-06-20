@@ -12,7 +12,7 @@ async def main():
     GEMINI_API_KEY = input("Enter Gemini API Key: ")  
     
  
-    solver = Bot.FreeCaptchaSolver(gemini_api_key=GEMINI_API_KEY if GEMINI_API_KEY == "AIzaSyDZij01DZ5oZnDGnZIVi_fU55oZiEdQ91A" else None)
+    solver = Bot.FreeCaptchaSolver(gemini_api_key=GEMINI_API_KEY if GEMINI_API_KEY == "Your Api Key" else None)
     
 
     SITE_URL = "https://www.ustraveldocs.com/tr/tr/nonimmigrant-visa"
