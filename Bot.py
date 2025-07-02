@@ -35,7 +35,8 @@ class FreeCaptchaSolver:
                     print(f"🔧 Tesseract path ayarlandı: {path}")
                     return
             
-            print("⚠️  Tesseract path bulunamadı, varsayılan kullanılacak")
+            print("⚠️ 
+            Tesseract path bulunamadı, varsayılan kullanılacak")
     
     def solve_captcha_with_tesseract(self, image_path):
 
